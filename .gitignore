@@ -1,0 +1,12 @@
+bin/
+obj/
+AppPackages/
+*.suo
+*.csproj.user
+TestResults/
+
+*.nupkg
+packages/*
+!packages/repositories.config
+
+Thumbs.db
