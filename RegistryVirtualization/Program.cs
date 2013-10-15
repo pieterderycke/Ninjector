@@ -22,18 +22,8 @@ namespace RegistryVirtualization
             string registryKey = "test1";
             string overrideRegistryKey = "test1";
 
-            IntPtr kernel32 = Win32.LoadLibrary("kernel32.dll");
-            IntPtr advapi32 = Win32.LoadLibrary("Advapi32.dll");
-
             Win32.PROCESS_INFORMATION processInfo;
             Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
-
-            exitThread = Win32.GetProcAddress(kernel32, "ExitThread");
-            IntPtr regOverridePredefKey = Win32.GetProcAddress(advapi32, "RegOverridePredefKey");
-            regOpenKey = Win32.GetProcAddress(advapi32, "RegOpenKeyW");
-
-            byte[] buffer = new byte[1024];
-            uint bufferIndex = 0;
 
             Win32.CreateProcess(application, null, IntPtr.Zero, IntPtr.Zero, false, Win32.NORMAL_PRIORITY_CLASS | Win32.CREATE_SUSPENDED,
                 IntPtr.Zero, null, ref startupInfo, out processInfo);
@@ -48,36 +38,29 @@ namespace RegistryVirtualization
             lastWin32Error = Marshal.GetLastWin32Error();
 
             MemoryWriter writer = new MemoryWriter(processesStartAddress, 1024);
+
             IntPtr registryKeyAddress = writer.WriteValue(registryKey);
+            IntPtr overrideRegistryKeyAddress = writer.WriteValue(overrideRegistryKey);
+            IntPtr registryHkeyAddress = writer.Alloc(4);
 
-            IntPtr registryKeyAddress = IntPtr.Add(processesStartAddress, (int)bufferIndex);
-            bufferIndex += (uint)buffer.CopyString((int)bufferIndex, registryKey);
-
-            IntPtr overrideRegistryKeyAddress = IntPtr.Add(processesStartAddress, (int)bufferIndex);
-            bufferIndex += (uint)buffer.CopyString((int)bufferIndex, overrideRegistryKey);
-
-            bufferIndex += 4;
-            IntPtr registryHkeyAddress = IntPtr.Add(processesStartAddress, (int) bufferIndex);
-
-            IntPtr codeStartAddress = IntPtr.Add(processesStartAddress, (int)bufferIndex);
-
-            bufferIndex += WriteRegOpenKey(buffer, bufferIndex, 0x80000001, registryKeyAddress, registryHkeyAddress); //HKEY_CURRENT_USER
-
-            bufferIndex = WriteExitThread(buffer, bufferIndex);
+            writer.CallRegOpenKey(0x80000001, registryKeyAddress, registryHkeyAddress); //HKEY_CURRENT_USER
+            writer.CallExitThread();
 
             // Change page protection so we can write executable code
             //VirtualProtectEx(hProcess, codecaveAddress, workspaceIndex, MemoryProtection.ExecuteReadWrite, &oldProtect);
 
             UIntPtr bytesWriten;
-            Win32.WriteProcessMemory(hProcess, processesStartAddress, buffer, bufferIndex, out bytesWriten);
+            Win32.WriteProcessMemory(hProcess, processesStartAddress, writer.Buffer, 
+                (uint)writer.Size, out bytesWriten);
 
             lastWin32Error = Marshal.GetLastWin32Error();
 
-            Win32.FlushInstructionCache(hProcess, processesStartAddress, new UIntPtr(bufferIndex));
+            Win32.FlushInstructionCache(hProcess, processesStartAddress, new UIntPtr((uint)writer.Size));
 
             lastWin32Error = Marshal.GetLastWin32Error();
 
-            IntPtr hThread = Win32.CreateRemoteThread(hProcess, IntPtr.Zero, 0, codeStartAddress, IntPtr.Zero, 0, IntPtr.Zero);
+            IntPtr hThread = Win32.CreateRemoteThread(hProcess, IntPtr.Zero, 0, writer.CodeStartTargetAddress, 
+                IntPtr.Zero, 0, IntPtr.Zero);
 
             //lastWin32Error = Marshal.GetLastWin32Error();
 
