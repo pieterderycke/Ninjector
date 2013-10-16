@@ -10,17 +10,14 @@ namespace RegistryVirtualization
     class Program
     {
 
-
-        private static IntPtr exitThread;
-        private static IntPtr regOpenKey;
-
         static void Main(string[] args)
         {
-            string application = @"C:\Program Files (x86)\Java\jre7\bin\java.exe";
+            //string application = @"C:\Program Files (x86)\Java\jre7\bin\java.exe";
+            string application = @"C:\Users\Pieter\Documents\Visual Studio 2012\Projects\ReadRegKey\ReadRegKey\bin\Debug\ReadRegKey.exe";
             int lastWin32Error;
 
-            string registryKey = "test1";
-            string overrideRegistryKey = "test1";
+            string registryKey = @"Pieter\Test1";
+            string overrideRegistryKey = @"Pieter\Test2";
 
             Win32.PROCESS_INFORMATION processInfo;
             Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
@@ -40,10 +37,17 @@ namespace RegistryVirtualization
             MemoryWriter writer = new MemoryWriter(processesStartAddress, 1024);
 
             IntPtr registryKeyAddress = writer.WriteValue(registryKey);
-            IntPtr overrideRegistryKeyAddress = writer.WriteValue(overrideRegistryKey);
             IntPtr registryHkeyAddress = writer.Alloc(4);
 
+            IntPtr overrideKeyAddress = writer.WriteValue(overrideRegistryKey);
+            IntPtr overrideHKeyAddress = writer.Alloc(4);
+
+            IntPtr advapi32 = writer.WriteValue("Advapi32.dll");
+
+            writer.CallLoadLibrary(advapi32);
             writer.CallRegOpenKey(0x80000001, registryKeyAddress, registryHkeyAddress); //HKEY_CURRENT_USER
+            writer.CallRegOpenKey(0x80000001, overrideKeyAddress, overrideHKeyAddress); //HKEY_CURRENT_USER
+            writer.CallRegOverridePredefKey(registryHkeyAddress, overrideHKeyAddress);
             writer.CallExitThread();
 
             // Change page protection so we can write executable code
@@ -71,40 +75,6 @@ namespace RegistryVirtualization
 
             // Resume process
             Win32.ResumeThread(processInfo.hThread);
-        }
-
-        private static uint WriteRegOpenKey(byte[] buffer, uint bufferIndex, uint hkey, IntPtr subKey, IntPtr result)
-        {
-            buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += (uint)buffer.CopyInt32((int)bufferIndex, result.ToInt32());
-
-            buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += (uint)buffer.CopyInt32((int)bufferIndex, subKey.ToInt32());
-
-            buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += (uint)buffer.CopyInt32((int)bufferIndex, 0x80000001); //HKEY_CURRENT_USER
-
-            buffer[bufferIndex++] = 0xB8; // MOV EAX
-            bufferIndex += (uint)buffer.CopyInt32((int)bufferIndex, regOpenKey.ToInt32()); // Address of RegOpenKey
-
-            buffer[bufferIndex++] = 0xFF; // CALL
-            buffer[bufferIndex++] = 0xD0; // EAX
-
-            return bufferIndex;
-        }
-
-        private static uint WriteExitThread(byte[] buffer, uint bufferIndex)
-        {
-            buffer[bufferIndex++] = 0x6A; // PUSH
-            buffer[bufferIndex++] = 0x00; // Constant 0
-
-            buffer[bufferIndex++] = 0xB8; // MOV EAX
-            bufferIndex += (uint)buffer.CopyInt32((int)bufferIndex, exitThread.ToInt32()); // Address of ExitThread
-
-            buffer[bufferIndex++] = 0xFF; // CALL
-            buffer[bufferIndex++] = 0xD0; // EAX
-
-            return bufferIndex;
         }
     }
 }
