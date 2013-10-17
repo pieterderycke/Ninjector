@@ -8,9 +8,11 @@ namespace RegistryVirtualization
     public class MemoryWriter
     {
         private static readonly IntPtr exitThread;
-        private static readonly IntPtr regOpenKey;
-        private static readonly IntPtr regOverridePredefKey;
         private static readonly IntPtr loadLibrary;
+        private static readonly IntPtr getLastError;
+        private static readonly IntPtr regOpenKey;
+        private static readonly IntPtr regCloseKey;
+        private static readonly IntPtr regOverridePredefKey;
 
         private readonly IntPtr targetStartAddress;
         private readonly byte[] buffer;
@@ -26,8 +28,10 @@ namespace RegistryVirtualization
 
             exitThread = Win32.GetProcAddress(kernel32, "ExitThread");
             loadLibrary = Win32.GetProcAddress(kernel32, "LoadLibraryW");
+            getLastError = Win32.GetProcAddress(kernel32, "GetLastError");
             regOverridePredefKey = Win32.GetProcAddress(advapi32, "RegOverridePredefKey");
-            regOpenKey = Win32.GetProcAddress(advapi32, "RegOpenKeyW");
+            regOpenKey = Win32.GetProcAddress(advapi32, "RegOpenKeyW"); // 1984464733
+            regCloseKey = Win32.GetProcAddress(advapi32, "RegCloseKey");
         }
 
         public MemoryWriter(IntPtr targetStartAddress, int size)
@@ -92,7 +96,7 @@ namespace RegistryVirtualization
             return address;
         }
 
-        public void CallRegOpenKey(uint hkey, IntPtr subKey, IntPtr result)
+        public void CallRegOpenKey(uint hKey, IntPtr subKey, IntPtr result)
         {
             MarkCodeStart();
 
@@ -103,7 +107,7 @@ namespace RegistryVirtualization
             bufferIndex += buffer.CopyInt32(bufferIndex, subKey.ToInt32());
 
             buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += buffer.CopyInt32(bufferIndex, 0x80000001); //HKEY_CURRENT_USER
+            bufferIndex += buffer.CopyInt32(bufferIndex, hKey); //HKEY_CURRENT_USER
 
             buffer[bufferIndex++] = 0xB8; // MOV EAX
             bufferIndex += buffer.CopyInt32(bufferIndex, regOpenKey.ToInt32()); // Address of RegOpenKey
@@ -112,17 +116,47 @@ namespace RegistryVirtualization
             buffer[bufferIndex++] = 0xD0; // EAX
         }
 
-        public void CallRegOverridePredefKey(IntPtr hKey, IntPtr newHkey)
+        public void CallRegCloseKey(IntPtr hKey)
         {
             MarkCodeStart();
 
             buffer[bufferIndex++] = 0xB8; // MOV EAX
-            bufferIndex += buffer.CopyInt32(bufferIndex, newHkey.ToInt32()); // Address of RegOpenKey
-            buffer[bufferIndex++] = 0x50; // PUSH EAX
+            bufferIndex += buffer.CopyInt32(bufferIndex, hKey.ToInt32());
+            buffer[bufferIndex++] = 0x8B;
+            buffer[bufferIndex++] = 0x08;
+            buffer[bufferIndex++] = 0x51;
 
             buffer[bufferIndex++] = 0xB8; // MOV EAX
-            bufferIndex += buffer.CopyInt32(bufferIndex, hKey.ToInt32()); // Address of RegOpenKey
-            buffer[bufferIndex++] = 0x50; // PUSH EAX
+            bufferIndex += buffer.CopyInt32(bufferIndex, regCloseKey.ToInt32()); // Address of RegCloseKey
+
+            buffer[bufferIndex++] = 0xFF; // CALL
+            buffer[bufferIndex++] = 0xD0; // EAX
+        }
+
+        public void CallRegOverridePredefKey(uint hKey, IntPtr newHkey)
+        {
+            MarkCodeStart();
+
+            buffer[bufferIndex++] = 0xB8; // MOV EAX
+            bufferIndex += buffer.CopyInt32(bufferIndex, newHkey.ToInt32());
+            buffer[bufferIndex++] = 0x8B;
+            buffer[bufferIndex++] = 0x08;
+            buffer[bufferIndex++] = 0x51;
+
+//            01183AE9 8B 08                mov         ecx,dword ptr [eax]  
+//01183AEB 51                   push        ecx 
+
+            //buffer[bufferIndex++] = 0x50; // PUSH EAX
+
+            //buffer[bufferIndex++] = 0xB8; // MOV EAX
+            //bufferIndex += buffer.CopyInt32(bufferIndex, hKey.ToInt32());
+            ////buffer[bufferIndex++] = 0x50; // PUSH EAX
+            //buffer[bufferIndex++] = 0x8B;
+            //buffer[bufferIndex++] = 0x08;
+            //buffer[bufferIndex++] = 0x51;
+
+            buffer[bufferIndex++] = 0x68; // PUSH
+            bufferIndex += buffer.CopyInt32(bufferIndex, hKey); //HKEY_CURRENT_USER
 
             buffer[bufferIndex++] = 0xB8; // MOV EAX
             bufferIndex += buffer.CopyInt32(bufferIndex, regOverridePredefKey.ToInt32()); // Address of RegOverridePredefKey
@@ -155,6 +189,17 @@ namespace RegistryVirtualization
 
             buffer[bufferIndex++] = 0xB8; // MOV EAX
             bufferIndex += buffer.CopyInt32(bufferIndex, loadLibrary.ToInt32()); // Address of LoadLibrary
+
+            buffer[bufferIndex++] = 0xFF; // CALL
+            buffer[bufferIndex++] = 0xD0; // EAX
+        }
+
+        public void CallGetLastError()
+        {
+            MarkCodeStart();
+
+            buffer[bufferIndex++] = 0xB8; // MOV EAX
+            bufferIndex += buffer.CopyInt32(bufferIndex, getLastError.ToInt32()); // Address of GetLastError
 
             buffer[bufferIndex++] = 0xFF; // CALL
             buffer[bufferIndex++] = 0xD0; // EAX

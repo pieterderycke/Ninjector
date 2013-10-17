@@ -8,8 +8,8 @@
     <ProjectGuid>{E888228E-ABDB-45BC-BDE4-528E106DA808}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RegistryVirtualization</RootNamespace>
-    <AssemblyName>RegistryVirtualization</AssemblyName>
+    <RootNamespace>Ninjector</RootNamespace>
+    <AssemblyName>Ninjector</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>

@@ -13,11 +13,11 @@ namespace RegistryVirtualization
         static void Main(string[] args)
         {
             //string application = @"C:\Program Files (x86)\Java\jre7\bin\java.exe";
-            string application = @"C:\Users\Pieter\Documents\Visual Studio 2012\Projects\ReadRegKey\ReadRegKey\bin\Debug\ReadRegKey.exe";
+            string application = @"C:\Users\Pieter\Documents\Visual Studio 2012\Projects\ReadRegKey\ReadRegKey\bin\x86\Debug\ReadRegKey.exe";
             int lastWin32Error;
 
-            string registryKey = @"Pieter\Test1";
-            string overrideRegistryKey = @"Pieter\Test2";
+            string registryKey = @"Pieter\Test";
+            //string overrideRegistryKey = @"Pieter\Test";
 
             Win32.PROCESS_INFORMATION processInfo;
             Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
@@ -39,15 +39,19 @@ namespace RegistryVirtualization
             IntPtr registryKeyAddress = writer.WriteValue(registryKey);
             IntPtr registryHkeyAddress = writer.Alloc(4);
 
-            IntPtr overrideKeyAddress = writer.WriteValue(overrideRegistryKey);
-            IntPtr overrideHKeyAddress = writer.Alloc(4);
+            //IntPtr overrideKeyAddress = writer.WriteValue(overrideRegistryKey);
+            //IntPtr overrideHKeyAddress = writer.Alloc(4);
 
             IntPtr advapi32 = writer.WriteValue("Advapi32.dll");
 
             writer.CallLoadLibrary(advapi32);
             writer.CallRegOpenKey(0x80000001, registryKeyAddress, registryHkeyAddress); //HKEY_CURRENT_USER
-            writer.CallRegOpenKey(0x80000001, overrideKeyAddress, overrideHKeyAddress); //HKEY_CURRENT_USER
-            writer.CallRegOverridePredefKey(registryHkeyAddress, overrideHKeyAddress);
+            //writer.CallGetLastError();
+            //writer.CallRegOpenKey(0x80000001, overrideKeyAddress, overrideHKeyAddress); //HKEY_CURRENT_USER
+            //writer.CallGetLastError();
+            //writer.CallRegOverridePredefKey(0x80000001, registryHkeyAddress);
+            //writer.CallGetLastError();
+            //writer.CallRegCloseKey(registryHkeyAddress);
             writer.CallExitThread();
 
             // Change page protection so we can write executable code
