@@ -49,7 +49,7 @@ namespace RegistryVirtualization
             //writer.CallGetLastError();
             //writer.CallRegOpenKey(0x80000001, overrideKeyAddress, overrideHKeyAddress); //HKEY_CURRENT_USER
             //writer.CallGetLastError();
-            //writer.CallRegOverridePredefKey(0x80000001, registryHkeyAddress);
+            writer.CallRegOverridePredefKey(0x80000001, registryHkeyAddress);
             //writer.CallGetLastError();
             //writer.CallRegCloseKey(registryHkeyAddress);
             writer.CallExitThread();

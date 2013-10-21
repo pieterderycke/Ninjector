@@ -11,6 +11,7 @@ namespace RegistryVirtualization
         private static readonly IntPtr loadLibrary;
         private static readonly IntPtr getLastError;
         private static readonly IntPtr regOpenKey;
+        private static readonly IntPtr regOpenKeyEx;
         private static readonly IntPtr regCloseKey;
         private static readonly IntPtr regOverridePredefKey;
 
@@ -31,6 +32,7 @@ namespace RegistryVirtualization
             getLastError = Win32.GetProcAddress(kernel32, "GetLastError");
             regOverridePredefKey = Win32.GetProcAddress(advapi32, "RegOverridePredefKey");
             regOpenKey = Win32.GetProcAddress(advapi32, "RegOpenKeyW"); // 1984464733
+            regOpenKeyEx = Win32.GetProcAddress(advapi32, "RegOpenKeyExW");
             regCloseKey = Win32.GetProcAddress(advapi32, "RegCloseKey");
         }
 
@@ -102,6 +104,34 @@ namespace RegistryVirtualization
 
             buffer[bufferIndex++] = 0x68; // PUSH
             bufferIndex += buffer.CopyInt32(bufferIndex, result.ToInt32());
+
+            buffer[bufferIndex++] = 0x68; // PUSH
+            bufferIndex += buffer.CopyInt32(bufferIndex, subKey.ToInt32());
+
+            buffer[bufferIndex++] = 0x68; // PUSH
+            bufferIndex += buffer.CopyInt32(bufferIndex, hKey); //HKEY_CURRENT_USER
+
+            buffer[bufferIndex++] = 0xB8; // MOV EAX
+            bufferIndex += buffer.CopyInt32(bufferIndex, regOpenKey.ToInt32()); // Address of RegOpenKey
+
+            buffer[bufferIndex++] = 0xFF; // CALL
+            buffer[bufferIndex++] = 0xD0; // EAX
+        }
+
+        public void CallRegOpenKeyEx(uint hKey, IntPtr subKey, IntPtr result)
+        {
+            MarkCodeStart();
+
+            buffer[bufferIndex++] = 0x68; // PUSH
+            bufferIndex += buffer.CopyInt32(bufferIndex, result.ToInt32());
+
+            buffer[bufferIndex++] = 0x68;
+            buffer[bufferIndex++] = 0x3F;
+            buffer[bufferIndex++] = 0x00;
+            buffer[bufferIndex++] = 0x0F;
+            buffer[bufferIndex++] = 0x00;
+            buffer[bufferIndex++] = 0x6A;
+            buffer[bufferIndex++] = 0x00;
 
             buffer[bufferIndex++] = 0x68; // PUSH
             bufferIndex += buffer.CopyInt32(bufferIndex, subKey.ToInt32());
