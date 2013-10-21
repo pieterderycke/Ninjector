@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Ninjector;
 
 namespace RegistryVirtualization
@@ -33,7 +34,8 @@ namespace RegistryVirtualization
             // Change page protection so we can write executable code
             //VirtualProtectEx(hProcess, codecaveAddress, workspaceIndex, MemoryProtection.ExecuteReadWrite, &oldProtect);
 
-            process.CreateRemoteThread(writer);
+            Task task = process.CreateRemoteThread(writer);
+            task.Wait();
 
             process.Resume();
         }

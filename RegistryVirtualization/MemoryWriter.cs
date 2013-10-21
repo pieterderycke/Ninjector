@@ -20,7 +20,7 @@ namespace RegistryVirtualization
         private int bufferIndex;
 
         private bool canWriteData;
-        private IntPtr codeStartTargetAddress;
+        private IntPtr codeTargetStartAddress;
 
         static MemoryWriter()
         {
@@ -59,9 +59,9 @@ namespace RegistryVirtualization
             get { return targetStartAddress; }
         }
 
-        public IntPtr CodeStartTargetAddress
+        public IntPtr CodeTargetStartAddress
         {
-            get { return codeStartTargetAddress; }
+            get { return codeTargetStartAddress; }
         }
 
         public IntPtr Alloc(int size)
@@ -255,7 +255,7 @@ namespace RegistryVirtualization
             if (canWriteData)
             {
                 this.canWriteData = false;
-                this.codeStartTargetAddress = IntPtr.Add(targetStartAddress, bufferIndex);
+                this.codeTargetStartAddress = IntPtr.Add(targetStartAddress, bufferIndex);
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using RegistryVirtualization;
 
 namespace Ninjector
@@ -29,8 +30,7 @@ namespace Ninjector
             return new MemoryWriter(processesStartAddress, size);
         }
 
-        // TODO -> should return Task
-        public void CreateRemoteThread(MemoryWriter writer)
+        public Task CreateRemoteThread(MemoryWriter writer)
         {
             UIntPtr bytesWriten;
             Win32.WriteProcessMemory(processInfo.hProcess, writer.TargetStartAddress, writer.Buffer,
@@ -42,15 +42,21 @@ namespace Ninjector
 
             //lastWin32Error = Marshal.GetLastWin32Error();
 
-            IntPtr hThread = Win32.CreateRemoteThread(processInfo.hProcess, IntPtr.Zero, 0, writer.CodeStartTargetAddress,
+            IntPtr hThread = Win32.CreateRemoteThread(processInfo.hProcess, IntPtr.Zero, 0, writer.CodeTargetStartAddress,
                 IntPtr.Zero, 0, IntPtr.Zero);
 
             //lastWin32Error = Marshal.GetLastWin32Error();
 
-            Win32.WaitForSingleObject(hThread, Win32.INFINITE);
+            Task task = new Task(() =>
+                {
+                    Win32.WaitForSingleObject(hThread, Win32.INFINITE);
 
-            // Free the memory in the process that we allocated
-            Win32.VirtualFreeEx(processInfo.hProcess, writer.TargetStartAddress, 0, Win32.FreeType.Release);
+                    // Free the memory in the process that we allocated
+                    Win32.VirtualFreeEx(processInfo.hProcess, writer.TargetStartAddress, 0, Win32.FreeType.Release);
+                });
+            task.Start();
+
+            return task;
         }
 
         public void Resume()
