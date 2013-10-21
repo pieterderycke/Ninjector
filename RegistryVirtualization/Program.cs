@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ninjector;
 
-namespace RegistryVirtualization
+namespace Ninjector
 {
     class Program
     {

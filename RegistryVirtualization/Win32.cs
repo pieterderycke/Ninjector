@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace RegistryVirtualization
+namespace Ninjector
 {
     internal class Win32
     {

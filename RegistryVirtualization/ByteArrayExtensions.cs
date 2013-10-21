@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RegistryVirtualization
+namespace Ninjector
 {
     public static class ByteArrayExtensions
     {
