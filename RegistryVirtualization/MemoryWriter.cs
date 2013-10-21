@@ -54,6 +54,11 @@ namespace RegistryVirtualization
             get { return buffer.Length; }
         }
 
+        public IntPtr TargetStartAddress
+        {
+            get { return targetStartAddress; }
+        }
+
         public IntPtr CodeStartTargetAddress
         {
             get { return codeStartTargetAddress; }
@@ -118,33 +123,34 @@ namespace RegistryVirtualization
             buffer[bufferIndex++] = 0xD0; // EAX
         }
 
-        public void CallRegOpenKeyEx(uint hKey, IntPtr subKey, IntPtr result)
-        {
-            MarkCodeStart();
+        // Todo: Bug in the implementation
+        //public void CallRegOpenKeyEx(uint hKey, IntPtr subKey, IntPtr result)
+        //{
+        //    MarkCodeStart();
 
-            buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += buffer.CopyInt32(bufferIndex, result.ToInt32());
+        //    buffer[bufferIndex++] = 0x68; // PUSH
+        //    bufferIndex += buffer.CopyInt32(bufferIndex, result.ToInt32());
 
-            buffer[bufferIndex++] = 0x68;
-            buffer[bufferIndex++] = 0x3F;
-            buffer[bufferIndex++] = 0x00;
-            buffer[bufferIndex++] = 0x0F;
-            buffer[bufferIndex++] = 0x00;
-            buffer[bufferIndex++] = 0x6A;
-            buffer[bufferIndex++] = 0x00;
+        //    buffer[bufferIndex++] = 0x68;
+        //    buffer[bufferIndex++] = 0x3F;
+        //    buffer[bufferIndex++] = 0x00;
+        //    buffer[bufferIndex++] = 0x0F;
+        //    buffer[bufferIndex++] = 0x00;
+        //    buffer[bufferIndex++] = 0x6A;
+        //    buffer[bufferIndex++] = 0x00;
 
-            buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += buffer.CopyInt32(bufferIndex, subKey.ToInt32());
+        //    buffer[bufferIndex++] = 0x68; // PUSH
+        //    bufferIndex += buffer.CopyInt32(bufferIndex, subKey.ToInt32());
 
-            buffer[bufferIndex++] = 0x68; // PUSH
-            bufferIndex += buffer.CopyInt32(bufferIndex, hKey); //HKEY_CURRENT_USER
+        //    buffer[bufferIndex++] = 0x68; // PUSH
+        //    bufferIndex += buffer.CopyInt32(bufferIndex, hKey); //HKEY_CURRENT_USER
 
-            buffer[bufferIndex++] = 0xB8; // MOV EAX
-            bufferIndex += buffer.CopyInt32(bufferIndex, regOpenKey.ToInt32()); // Address of RegOpenKey
+        //    buffer[bufferIndex++] = 0xB8; // MOV EAX
+        //    bufferIndex += buffer.CopyInt32(bufferIndex, regOpenKey.ToInt32()); // Address of RegOpenKey
 
-            buffer[bufferIndex++] = 0xFF; // CALL
-            buffer[bufferIndex++] = 0xD0; // EAX
-        }
+        //    buffer[bufferIndex++] = 0xFF; // CALL
+        //    buffer[bufferIndex++] = 0xD0; // EAX
+        //}
 
         public void CallRegCloseKey(IntPtr hKey)
         {

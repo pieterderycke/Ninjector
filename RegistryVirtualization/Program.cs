@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Ninjector;
 
 namespace RegistryVirtualization
 {
@@ -19,22 +20,25 @@ namespace RegistryVirtualization
             string registryKey = @"Pieter\Test";
             //string overrideRegistryKey = @"Pieter\Test";
 
-            Win32.PROCESS_INFORMATION processInfo;
-            Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
+            //Win32.PROCESS_INFORMATION processInfo;
+            //Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
 
-            Win32.CreateProcess(application, null, IntPtr.Zero, IntPtr.Zero, false, Win32.NORMAL_PRIORITY_CLASS | Win32.CREATE_SUSPENDED,
-                IntPtr.Zero, null, ref startupInfo, out processInfo);
+            //Win32.CreateProcess(application, null, IntPtr.Zero, IntPtr.Zero, false, Win32.NORMAL_PRIORITY_CLASS | Win32.CREATE_SUSPENDED,
+            //    IntPtr.Zero, null, ref startupInfo, out processInfo);
 
-            lastWin32Error = Marshal.GetLastWin32Error();
+            //lastWin32Error = Marshal.GetLastWin32Error();
 
-            IntPtr hProcess = processInfo.hProcess;
+            //IntPtr hProcess = processInfo.hProcess;
 
-            IntPtr processesStartAddress = Win32.VirtualAllocEx(hProcess, IntPtr.Zero, 1024, 
-                Win32.AllocationType.Commit | Win32.AllocationType.Reserve, Win32.MemoryProtection.ExecuteReadWrite);
+            //IntPtr processesStartAddress = Win32.VirtualAllocEx(hProcess, IntPtr.Zero, 1024, 
+            //    Win32.AllocationType.Commit | Win32.AllocationType.Reserve, Win32.MemoryProtection.ExecuteReadWrite);
 
-            lastWin32Error = Marshal.GetLastWin32Error();
+            //lastWin32Error = Marshal.GetLastWin32Error();
 
-            MemoryWriter writer = new MemoryWriter(processesStartAddress, 1024);
+            //MemoryWriter writer = new MemoryWriter(processesStartAddress, 1024);
+
+            InjectableProcess process = new InjectableProcess(application, Win32.NORMAL_PRIORITY_CLASS | Win32.CREATE_SUSPENDED);
+            MemoryWriter writer = process.CreateMemoryWriter(1024);
 
             IntPtr registryKeyAddress = writer.WriteValue(registryKey);
             IntPtr registryHkeyAddress = writer.Alloc(4);
@@ -57,28 +61,31 @@ namespace RegistryVirtualization
             // Change page protection so we can write executable code
             //VirtualProtectEx(hProcess, codecaveAddress, workspaceIndex, MemoryProtection.ExecuteReadWrite, &oldProtect);
 
-            UIntPtr bytesWriten;
-            Win32.WriteProcessMemory(hProcess, processesStartAddress, writer.Buffer, 
-                (uint)writer.Size, out bytesWriten);
+            process.CreateRemoteThread(writer);
 
-            lastWin32Error = Marshal.GetLastWin32Error();
-
-            Win32.FlushInstructionCache(hProcess, processesStartAddress, new UIntPtr((uint)writer.Size));
-
-            lastWin32Error = Marshal.GetLastWin32Error();
-
-            IntPtr hThread = Win32.CreateRemoteThread(hProcess, IntPtr.Zero, 0, writer.CodeStartTargetAddress, 
-                IntPtr.Zero, 0, IntPtr.Zero);
+            //UIntPtr bytesWriten;
+            //Win32.WriteProcessMemory(hProcess, processesStartAddress, writer.Buffer, 
+            //    (uint)writer.Size, out bytesWriten);
 
             //lastWin32Error = Marshal.GetLastWin32Error();
 
-            Win32.WaitForSingleObject(hThread, Win32.INFINITE);
+            //Win32.FlushInstructionCache(hProcess, processesStartAddress, new UIntPtr((uint)writer.Size));
 
-            // Free the memory in the process that we allocated
-            Win32.VirtualFreeEx(hProcess, processesStartAddress, 0, Win32.FreeType.Release);
+            //lastWin32Error = Marshal.GetLastWin32Error();
+
+            //IntPtr hThread = Win32.CreateRemoteThread(hProcess, IntPtr.Zero, 0, writer.CodeStartTargetAddress, 
+            //    IntPtr.Zero, 0, IntPtr.Zero);
+
+            ////lastWin32Error = Marshal.GetLastWin32Error();
+
+            //Win32.WaitForSingleObject(hThread, Win32.INFINITE);
+
+            //// Free the memory in the process that we allocated
+            //Win32.VirtualFreeEx(hProcess, processesStartAddress, 0, Win32.FreeType.Release);
 
             // Resume process
-            Win32.ResumeThread(processInfo.hThread);
+            process.Resume();
+            //Win32.ResumeThread(processInfo.hThread);
         }
     }
 }
