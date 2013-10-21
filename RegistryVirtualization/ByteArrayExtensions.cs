@@ -12,8 +12,8 @@ namespace RegistryVirtualization
             byte[] bytes = Encoding.Unicode.GetBytes(value);
 
             Buffer.BlockCopy(bytes, 0, buffer, offset, bytes.Length);
-            buffer[bytes.Length] = 0x00;
-            buffer[bytes.Length + 1] = 0x00;
+            buffer[offset + bytes.Length] = 0x00;
+            buffer[offset + bytes.Length + 1] = 0x00;
 
             return bytes.Length + 2;
         }
