@@ -79,7 +79,6 @@
   <ItemGroup>
     <Compile Include="ByteArrayExtensions.cs" />
     <Compile Include="InjectableProcess.cs" />
-    <Compile Include="Isolator.cs" />
     <Compile Include="MemoryWriter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
