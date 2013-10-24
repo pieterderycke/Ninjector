@@ -17,7 +17,14 @@ namespace Ninjector
 
             Win32.CreateProcess(applicationPath, null, IntPtr.Zero, IntPtr.Zero, false, (uint)creationFlags,
                 IntPtr.Zero, null, ref startupInfo, out processInfo);
+
+            bool wow64Process;
+            Win32.IsWow64Process(processInfo.hProcess, out wow64Process);
+
+            Is32BitProcess = wow64Process || Environment.Is64BitOperatingSystem;
         }
+
+        public bool Is32BitProcess { get; private set; }
 
         public MemoryWriter CreateMemoryWriter(int size)
         {

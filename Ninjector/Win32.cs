@@ -12,6 +12,11 @@ namespace Ninjector
         internal const int CREATE_SUSPENDED = 0x00000004;
         internal const uint INFINITE = 0xFFFFFFFF;
 
+        [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWow64Process([In] IntPtr processHandle,
+             [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern bool CreateProcess(string lpApplicationName,
            string lpCommandLine, IntPtr lpProcessAttributes,
