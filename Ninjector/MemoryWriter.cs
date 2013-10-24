@@ -36,7 +36,7 @@ namespace Ninjector
             regCloseKey = Win32.GetProcAddress(advapi32, "RegCloseKey");
         }
 
-        public MemoryWriter(IntPtr targetStartAddress, int size)
+        internal MemoryWriter(IntPtr targetStartAddress, int size)
         {
             this.targetStartAddress = targetStartAddress;
             this.buffer = new byte[size];

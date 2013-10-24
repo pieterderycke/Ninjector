@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Ninjector</id>
+    <version>$version$</version>
+    <title>Ninjector</title>
+    <authors>Pieter De Rycke</authors>
+    <licenseUrl>https://github.com/pieterderycke/Ninjector/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>https://github.com/pieterderycke/Ninjector</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+		Ninjector is a .NET injection library that allows to insert specific x86 or x64 instructions in any win32 process.
+	</description>
+	<summary>
+		Ninjector is a .NET injection library that allows to insert specific x86 or x64 instructions in any win32 process.
+	</summary>
+  </metadata>
+</package>
