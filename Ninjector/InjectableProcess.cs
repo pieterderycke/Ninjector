@@ -11,11 +11,11 @@ namespace Ninjector
     {
         private Win32.PROCESS_INFORMATION processInfo;
 
-        public InjectableProcess(string applicationPath, int creationFlags)
+        public InjectableProcess(string applicationPath, ProcessCreationOptions creationFlags)
         {
             Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
 
-            Win32.CreateProcess(applicationPath, null, IntPtr.Zero, IntPtr.Zero, false, Win32.NORMAL_PRIORITY_CLASS | Win32.CREATE_SUSPENDED,
+            Win32.CreateProcess(applicationPath, null, IntPtr.Zero, IntPtr.Zero, false, (uint)creationFlags,
                 IntPtr.Zero, null, ref startupInfo, out processInfo);
         }
 

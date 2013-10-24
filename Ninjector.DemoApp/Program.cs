@@ -18,7 +18,7 @@ namespace Ninjector
         {
             int lastWin32Error;
 
-            InjectableProcess process = new InjectableProcess(TestApplication, Win32.NORMAL_PRIORITY_CLASS | Win32.CREATE_SUSPENDED);
+            InjectableProcess process = new InjectableProcess(TestApplication, ProcessCreationOptions.NormalPriorityClass | ProcessCreationOptions.CreateSuspended);
             MemoryWriter writer = process.CreateMemoryWriter(1024);
 
             IntPtr advapi32 = writer.WriteValue("Advapi32.dll");
